@@ -1,5 +1,6 @@
 class FetchService {
   static instance = null;
+  #DOMAIN = "https://api.udilia.com/coins/v1";
 
   constructor() {
     if (FetchService.instance) {
@@ -8,15 +9,19 @@ class FetchService {
     FetchService.instance = this;
   }
 
-  get() {}
+  async get(url) {
+    const path = `${this.#DOMAIN}/${url}`;
+    const response = await (await fetch(path)).json();
+    return response;
+  }
 
   post() {}
 
-  push() {}
+  put() {}
 
   delete() {}
 }
 
 const fetchService = new FetchService();
 
-export default FetchService;
+export default fetchService;
