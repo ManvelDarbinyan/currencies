@@ -19,7 +19,14 @@
   font-size: 14px;
   font-weight: 400;
 }
-
+.up {
+  color: #3cd483;
+  padding-left: 10px;
+}
+.down {
+  color: #d64d96;
+  padding-left: 10px;
+}
 .Table-body {
   text-align: left;
   background-color: #0f273d;

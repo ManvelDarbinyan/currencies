@@ -1,5 +1,8 @@
 import React from "react";
 import fetchService from "../../services/FetchService";
+import Pagination from "../Pagination/Pagination";
+import Table from "./Table";
+import Loading from "../Loading/Loading";
 import "./List.css";
 
 class List extends React.Component {
@@ -10,71 +13,114 @@ class List extends React.Component {
       loading: true,
       currencies: [],
       error: null,
+      page: 1,
+      totalPages: 0,
     };
   }
 
   currenciesGetter = async () => {
+    const { page } = this.state;
+
     const response = await fetchService.get(
-      "cryptocurrencies?page=1&perPage=20"
+      `cryptocurrencies?page=${page}&perPage=7`
     );
     this.setState({
       currencies: response.currencies,
       loading: false,
+      totalPages: response.totalPages,
     });
-  };
-
-  renderChangePercent = (percent) => {
-    if (percent > 0) {
-      return <span className="percent-raised">{percent}% &uarr;</span>;
-    } else if (percent < 0) {
-      return <span className="percent-fallen">{percent}% &darr;</span>;
-    } else {
-      return <span>{percent}</span>;
-    }
   };
 
   componentDidMount() {
     this.currenciesGetter();
   }
 
-  render() {
-    const { loading, currencies } = this.state;
-    console.log(currencies);
-    if (loading) {
-      return <div>Loading...</div>;
+  handleSort = (direction) => {
+    const { currencies } = this.state;
+
+    if (direction === "priceUp") {
+      this.setState({
+        currencies: currencies.sort(
+          (a, b) => b.price.replace(/,/g, "") - a.price.replace(/,/g, "")
+        ),
+      });
     }
+
+    if (direction === "priceDown") {
+      this.setState({
+        currencies: currencies.sort(
+          (a, b) => a.price.replace(/,/g, "") - b.price.replace(/,/g, "")
+        ),
+      });
+    }
+
+    if (direction === "marketCapUp") {
+      this.setState({
+        currencies: currencies.sort(
+          (a, b) =>
+            b.marketCap.replace(/,/g, "") - a.marketCap.replace(/,/g, "")
+        ),
+      });
+    }
+
+    if (direction === "marketCapDown") {
+      this.setState({
+        currencies: currencies.sort(
+          (a, b) =>
+            a.marketCap.replace(/,/g, "") - b.marketCap.replace(/,/g, "")
+        ),
+      });
+    }
+
+    if (direction === "change24hUp") {
+      this.setState({
+        currencies: currencies.sort(
+          (a, b) =>
+            b.percentChange24h.replace(/,/g, "") -
+            a.percentChange24h.replace(/,/g, "")
+        ),
+      });
+    }
+
+    if (direction === "change24hDown") {
+      this.setState({
+        currencies: currencies.sort(
+          (a, b) =>
+            a.percentChange24h.replace(/,/g, "") -
+            b.percentChange24h.replace(/,/g, "")
+        ),
+      });
+    }
+  };
+
+  handlePaginationClick = (direction) => {
+    if (direction === "next") {
+      this.setState((prev) => ({ page: prev.page + 1 }), this.currenciesGetter);
+    } else {
+      this.setState((prev) => ({ page: prev.page - 1 }), this.currenciesGetter);
+    }
+  };
+
+  render() {
+    const { loading, currencies, totalPages, page } = this.state;
+
+    if (loading) {
+      return (
+        <div className="loading-container">
+          <Loading />
+        </div>
+      );
+    }
+
     return (
-      <div className="Table-container">
-        <table className="Table">
-          <thead className="Table-head">
-            <tr>
-              <th>Cryptocurrency</th>
-              <th>Price</th>
-              <th>Market Cap</th>
-              <th>24H Change</th>
-            </tr>
-          </thead>
-          <tbody className="Table-body">
-            {currencies.map((currency) => (
-              <tr key={currency.id}>
-                <td>
-                  <span className="Table-rank">{currency.rank}</span>
-                  {currency.name}
-                </td>
-                <td>
-                  <span className="Table-dollar">$ </span>
-                  {currency.price}
-                </td>
-                <td>
-                  <span className="Table-dollar">$ </span>
-                  {currency.marketCap}
-                </td>
-                <td>{this.renderChangePercent(currency.percentChange24h)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <>
+        <Table currencies={currencies} handleSort={this.handleSort} />
+        <Pagination
+          handlePaginationClick={this.handlePaginationClick}
+          totalPages={totalPages}
+          page={page}
+        />
+      </>
     );
   }
 }
